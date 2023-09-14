@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.7.34024.191
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AES_encryption_app", "AES_encryption_app\AES_encryption_app.csproj", "{2353CCBD-A24C-4779-9B10-D5474823F688}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AES_console", "AES_console\AES_console.csproj", "{3B1B5295-485C-4966-BDFA-1185F7B92056}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2353CCBD-A24C-4779-9B10-D5474823F688}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2353CCBD-A24C-4779-9B10-D5474823F688}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2353CCBD-A24C-4779-9B10-D5474823F688}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2353CCBD-A24C-4779-9B10-D5474823F688}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3B1B5295-485C-4966-BDFA-1185F7B92056}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3B1B5295-485C-4966-BDFA-1185F7B92056}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3B1B5295-485C-4966-BDFA-1185F7B92056}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3B1B5295-485C-4966-BDFA-1185F7B92056}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5D2AE699-F3CC-47D6-ABC5-220B96885884}
+	EndGlobalSection
+EndGlobal
