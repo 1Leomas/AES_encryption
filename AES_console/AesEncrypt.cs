@@ -103,7 +103,17 @@ internal class AesEncrypt
 
             //transformam in matrice 4x4
             byte[,] stateArray = new byte[4, 4];
-            GetMatrix(block, stateArray);
+            GetStateArray(block, stateArray);
+
+            // print state at console
+            for (int j = 0; j < 4; j++)
+            {
+                Console.WriteLine();
+                for (int k = 0; k < 4; k++)
+                {
+                    Console.Write(stateArray[j, k].ToString("X") + " ");
+                }
+            }
 
             // Primele 9 runde
             for (int j = 0; j < ROUNDS - 1; j++)
@@ -180,7 +190,7 @@ internal class AesEncrypt
         word[3] = SBOX[word[3]];
     }
 
-    private void GetMatrix(byte[] data, byte[,] stateArray)
+    private void GetStateArray(byte[] data, byte[,] stateArray)
     {
         var inputBytesLen = data.Length;
 
@@ -191,7 +201,8 @@ internal class AesEncrypt
                 if(i*4+j == inputBytesLen)
                     return;
 
-                stateArray[i,j] = data[i * 4 + j];
+                // matricea se formeaza pe coloane
+                stateArray[i,j] = data[j * 4 + i];
             }
         }
     }
