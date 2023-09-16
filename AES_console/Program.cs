@@ -6,10 +6,10 @@ using System.Text;
 
 var aes = new AesEncrypt();
 
-aes.Encrypt();
+var s = aes.Encrypt();
 
 
-
+Console.WriteLine(s);
 
 Console.ReadLine();
 
