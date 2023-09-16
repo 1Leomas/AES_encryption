@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Text;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace AES_console;
 
@@ -8,8 +9,6 @@ internal class AesEncrypt
     private const int BLOCK_SIZE = 16;
     private const int KEY_SIZE = 128 / 8;
     private const int ROUNDS = 10;
-        
-    private byte[] Key;
 
     // pentru 128 bytes avem 10 + 1 keys
     // fiecare Key are 16 bytes => 178 bytes
@@ -174,20 +173,41 @@ internal class AesEncrypt
         0x37, 0x39, 0x2b, 0x25, 0x0f, 0x01, 0x13, 0x1d, 0x47, 0x49, 0x5b, 0x55, 0x7f, 0x71, 0x63, 0x6d,
         0xd7, 0xd9, 0xcb, 0xc5, 0xef, 0xe1, 0xf3, 0xfd, 0xa7, 0xa9, 0xbb, 0xb5, 0x9f, 0x91, 0x83, 0x8d};
 
-public string Encrypt(string text = "Two One Nine Two", string key = "Thats my Kung Fu")  
+public byte[] Encrypt(string text, string key)  
     {
-        var cipherStringBuilder = new StringBuilder();
-        // transformam intr-un hex array caracterele
-        byte[] inputInBytes = Encoding.ASCII.GetBytes(text);
+        Console.WriteLine("Encrypt\n\n");
 
-        Key = Encoding.UTF8.GetBytes(key);
+        var cryptedData = new byte[text.Length];
+
+        // transformam intr-un hex array caracterele
+        byte[] inputInBytes = Encoding.UTF8.GetBytes(text);
+
+        byte[] Key = Encoding.UTF8.GetBytes(key);
         if (Key.Length != KEY_SIZE)
             throw new Exception("Key must be 128 bits long");
 
+
+
+        Console.WriteLine($"Input text: {text}");
+        Console.Write("Input text in hex: ");
+        for (int i = 0; i < inputInBytes.Length; i++)
+        {
+            Console.Write(inputInBytes[i].ToString("X") + " ");
+        }
+        Console.WriteLine();
+        Console.WriteLine($"\nKey: {key}");
+        Console.Write("Key in hex: ");
+        for (int i = 0; i < inputInBytes.Length; i++)
+        {
+            Console.Write(Key[i].ToString("X") + " ");
+        }
+        Console.WriteLine();
+
+
         // generate RoundKeys 
-        KeyExpansion();
+        KeyExpansion(Key);
         
-        // luam a cate 16 caractere si sa le cripteze
+        // luam a cate 16 caractere si le criptam
         for (int i = 0; i < inputInBytes.Length; i += BLOCK_SIZE)
         {
             int endIndex = Math.Min(i + BLOCK_SIZE, inputInBytes.Length);
@@ -199,30 +219,51 @@ public string Encrypt(string text = "Two One Nine Two", string key = "Thats my K
             //transformam in matrice 4x4
             byte[,] stateArray = new byte[4, 4];
             GetStateArray(block, stateArray);
+
+            //print state at console
+            PrintMatrix(stateArray, "\nInitial State Array");
             
             AddRoundKey(stateArray, RoundKeys[i]);
+
+            //print state at console
+            PrintMatrix(stateArray, "After AddRoundKey");
 
             // Primele 9 runde
             for (int j = 0; j < ROUNDS - 1; j++)
             {
+                Console.WriteLine($"\n\n----------- ROUND {j+1} -----------\n");
+
                 SubBytes(stateArray);
+                PrintMatrix(stateArray, "After SubBytes");
+
                 ShiftRows(stateArray);
+                PrintMatrix(stateArray, "After ShiftRows");
+
                 MixColumn(stateArray);
+                PrintMatrix(stateArray, "After MixColumn");
+
                 AddRoundKey(stateArray, RoundKeys[j+1]);
+                PrintMatrix(stateArray, "After AddRoundKey");
             }
 
             // Ultima runda
-            SubBytes(stateArray);
-            ShiftRows(stateArray);
-            AddRoundKey(stateArray, RoundKeys[ROUNDS]);
+            Console.WriteLine($"\n\n----------- ROUND {10} -----------\n");
 
-            //add state to cipher text
+            SubBytes(stateArray);
+            PrintMatrix(stateArray, "After SubBytes");
+
+            ShiftRows(stateArray);
+            PrintMatrix(stateArray, "After ShiftRows");
+
+            AddRoundKey(stateArray, RoundKeys[ROUNDS]);
+            PrintMatrix(stateArray, "After AddRoundKey");
+
             for (int k = 0; k < 4; k++)
                 for (int l = 0; l < 4; l++)
-                    cipherStringBuilder.Append(stateArray[k, l].ToString("X"));
+                    cryptedData[k * 4 + l] = stateArray[l, k];
         }
 
-        return cipherStringBuilder.ToString();
+        return cryptedData;
     }
 
     private void PrintMatrix(byte[] roundKey, string roundkeys = "")
@@ -235,6 +276,7 @@ public string Encrypt(string text = "Two One Nine Two", string key = "Thats my K
             {
                 Console.Write(roundKey[j * 4 + k].ToString("X") + " ");
             }
+            Console.WriteLine();
         }
 
         Console.WriteLine();
@@ -248,21 +290,22 @@ public string Encrypt(string text = "Two One Nine Two", string key = "Thats my K
         {
             for (int k = 0; k < 4; k++)
             {
-                Console.Write(matrix[j, k].ToString("X") + " ");
+                Console.Write(matrix[j, k].ToString("X2") + " ");
             }
+            Console.WriteLine();
         }
 
         Console.WriteLine();
     }   
 
-    private void KeyExpansion()
+    private void KeyExpansion(byte[] key)
     {
         // declaram cheile
         for (int i = 0; i < ROUNDS + 1; ++i)
             RoundKeys[i] = new byte[KEY_SIZE];
 
         // save first 16 bytes from Key in first roundKey
-        Array.Copy(Key, RoundKeys[0], KEY_SIZE);
+        Array.Copy(key, RoundKeys[0], KEY_SIZE);
 
         for (int i = 0; i < 10; i++)
         {
@@ -323,28 +366,101 @@ public string Encrypt(string text = "Two One Nine Two", string key = "Thats my K
             }
         }
     }
-
-    //takes a byte and returns a corresponding byte according to a look-up table
-    private void SubBytes(byte[,] stateArray)
+            
+    public byte[] Decrypt(byte[] dataBytes, string key)
     {
-        for (int i = 0; i < 4; i++)
-            for (int j = 0; j < 4; j++)
-                stateArray[i, j] = SBOX[stateArray[i, j]];
+        Console.WriteLine("\n\nDencrypt\n\n");
+
+        var decryptedData = new byte[dataBytes.Length];
+
+        byte[] Key = Encoding.UTF8.GetBytes(key);
+
+        if (Key.Length != KEY_SIZE)
+            throw new Exception("Key must be 128 bits long");
+
+        Console.WriteLine($"Input: {dataBytes}");
+        Console.Write("Input in hex: ");
+        for (int i = 0; i < dataBytes.Length; i++)
+        {
+            Console.Write(dataBytes[i].ToString("X") + " ");
+        }
+
+        Console.WriteLine();
+        Console.WriteLine($"\nKey: {key}");
+        Console.Write("Key in hex: ");
+        for (int i = 0; i < dataBytes.Length; i++)
+        {
+            Console.Write(Key[i].ToString("X") + " ");
+        }
+        Console.WriteLine();
+
+        // generate RoundKeys 
+        KeyExpansion(Key);
+
+        // luam a cate 16 caractere si le decriptam
+        // blocurile sunt independente asa ca nu are importanta ordinea
+        for (int i = 0; i < dataBytes.Length; i += BLOCK_SIZE)
+        {
+            int endIndex = Math.Min(i + BLOCK_SIZE, dataBytes.Length);
+
+            byte[] block = new byte[BLOCK_SIZE];
+
+            Array.Copy(dataBytes, i, block, 0, endIndex - i);
+
+            //transformam in matrice 4x4
+            byte[,] stateArray = new byte[4, 4];
+            GetStateArray(block, stateArray);
+
+            PrintMatrix(stateArray, "\nState before decryption");
+
+            Console.WriteLine($"\n\n----------- ROUND 10 -----------\n");
+            
+            AddRoundKey(stateArray, RoundKeys[ROUNDS]);
+            PrintMatrix(stateArray, "After add round key");
+
+            InvShiftRows(stateArray);
+            PrintMatrix(stateArray, $"After InvShiftRows");
+
+            InvSubBytes(stateArray);
+            PrintMatrix(stateArray, $"After InvSubBytes");
+
+            // Primele 9 runde
+            for (int j = ROUNDS - 1; j > 0; j--)
+            {
+                Console.WriteLine($"\n\n----------- ROUND {j} -----------\n");
+
+                AddRoundKey(stateArray, RoundKeys[j]);
+                PrintMatrix(stateArray, "After add round key");
+
+                InvMixColumn(stateArray);
+                PrintMatrix(stateArray, $"After InvMixColumn");
+
+                InvShiftRows(stateArray);
+                PrintMatrix(stateArray, $"After InvShiftRows");
+
+                InvSubBytes(stateArray);
+                PrintMatrix(stateArray, $"After InvSubBytes");
+            }
+
+            Console.WriteLine($"\n\n----------- ROUND 0 -----------\n");
+            AddRoundKey(stateArray, RoundKeys[0]);
+            PrintMatrix(stateArray, "After add round key");
+
+            //add state to byte array
+            for (int k = 0; k < 4; k++)
+                for (int l = 0; l < 4; l++)
+                    decryptedData[k * 4 + l] = stateArray[l, k];
+        }
+
+        return decryptedData;
     }
 
-    private void ShiftRows(byte[,] stateArray)
+    private void AddRoundKey(byte[,] stateArray, byte[] roundKey)
     {
-        // shift row 1
-        (stateArray[1, 0], stateArray[1, 1], stateArray[1, 2], stateArray[1, 3]) =
-        (stateArray[1, 1], stateArray[1, 2], stateArray[1, 3], stateArray[1, 0]);
-
-        // shift row 2
-        (stateArray[2, 0], stateArray[2, 1], stateArray[2, 2], stateArray[2, 3]) =
-        (stateArray[2, 2], stateArray[2, 3], stateArray[2, 0], stateArray[2, 1]);
-
-        // shift row 3
-        (stateArray[3, 0], stateArray[3, 1], stateArray[3, 2], stateArray[3, 3]) =
-        (stateArray[3, 3], stateArray[3, 0], stateArray[3, 1], stateArray[3, 2]);
+        // XOR cu roundKey
+        for (int i = 0; i < 4; i++)
+        for (int j = 0; j < 4; j++)
+            stateArray[i, j] ^= roundKey[j * 4 + i];
     }
 
     private void MixColumn(byte[,] stateArray)
@@ -363,11 +479,61 @@ public string Encrypt(string text = "Two One Nine Two", string key = "Thats my K
 
     }
 
-    private void AddRoundKey(byte[,] stateArray, byte[] roundKey)
+    private void InvMixColumn(byte[,] stateArray)
     {
-        // XOR cu roundKey
+        byte[,] temp = new byte[4, 4];
+
+        for (int i = 0; i < 4; i++)
+        {
+            temp[0, i] = (byte)(M14[stateArray[0, i]] ^ M11[stateArray[1, i]] ^ M13[stateArray[2, i]] ^ M9[stateArray[3, i]]);
+            temp[1, i] = (byte)(M9[stateArray[0, i]] ^ M14[stateArray[1, i]] ^ M11[stateArray[2, i]] ^ M13[stateArray[3, i]]);
+            temp[2, i] = (byte)(M13[stateArray[0, i]] ^ M9[stateArray[1, i]] ^ M14[stateArray[2, i]] ^ M11[stateArray[3, i]]);
+            temp[3, i] = (byte)(M11[stateArray[0, i]] ^ M13[stateArray[1, i]] ^ M9[stateArray[2, i]] ^ M14[stateArray[3, i]]);
+        }
+
+        Array.Copy(temp, stateArray, 16);
+    }
+
+    //takes a byte and returns a corresponding byte according to a look-up table
+    private void SubBytes(byte[,] stateArray)
+    {
+        for (int i = 0; i < 4; i++)
+        for (int j = 0; j < 4; j++)
+            stateArray[i, j] = SBOX[stateArray[i, j]];
+    }
+
+    private void InvSubBytes(byte[,] stateArray)
+    {
         for (int i = 0; i < 4; i++)
             for (int j = 0; j < 4; j++)
-                stateArray[i, j] ^= roundKey[j * 4 + i];
+                stateArray[i, j] = ISBOX[stateArray[i, j]];
+    }
+
+    private void ShiftRows(byte[,] stateArray)
+    {
+        // shift row 1 with 1 position left
+        (stateArray[1, 0], stateArray[1, 1], stateArray[1, 2], stateArray[1, 3]) =
+        (stateArray[1, 1], stateArray[1, 2], stateArray[1, 3], stateArray[1, 0]);
+
+        // shift row 2 with 2 position left
+        (stateArray[2, 0], stateArray[2, 1], stateArray[2, 2], stateArray[2, 3]) =
+        (stateArray[2, 2], stateArray[2, 3], stateArray[2, 0], stateArray[2, 1]);
+
+        // shift row 3 with 3 position left
+        (stateArray[3, 0], stateArray[3, 1], stateArray[3, 2], stateArray[3, 3]) =
+        (stateArray[3, 3], stateArray[3, 0], stateArray[3, 1], stateArray[3, 2]);
+    }
+
+    private void InvShiftRows(byte[,] stateArray)
+    {
+        // shift row 1 with 1 position right
+        (stateArray[1, 0], stateArray[1, 1], stateArray[1, 2], stateArray[1, 3]) =
+        (stateArray[1, 3], stateArray[1, 0], stateArray[1, 1], stateArray[1, 2]);
+        // shift row 2 with 2 position right
+        (stateArray[2, 0], stateArray[2, 1], stateArray[2, 2], stateArray[2, 3]) =
+        (stateArray[2, 2], stateArray[2, 3], stateArray[2, 0], stateArray[2, 1]);
+        // shift row 3 with 3 position right
+        (stateArray[3, 0], stateArray[3, 1], stateArray[3, 2], stateArray[3, 3]) =
+        (stateArray[3, 1], stateArray[3, 2], stateArray[3, 3], stateArray[3, 0]);
     }
 }
