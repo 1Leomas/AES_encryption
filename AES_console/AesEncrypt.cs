@@ -177,7 +177,13 @@ public byte[] Encrypt(string text, string key)
     {
         Console.WriteLine("Encrypt\n\n");
 
-        var cryptedData = new byte[text.Length];
+        int cryptedDataLen;
+        if (text.Length % BLOCK_SIZE == 0)
+            cryptedDataLen = text.Length;
+        else
+            cryptedDataLen = text.Length + BLOCK_SIZE - text.Length % BLOCK_SIZE;
+
+        var cryptedData = new byte[cryptedDataLen];
 
         // transformam intr-un hex array caracterele
         byte[] inputInBytes = Encoding.UTF8.GetBytes(text);
@@ -197,7 +203,7 @@ public byte[] Encrypt(string text, string key)
         Console.WriteLine();
         Console.WriteLine($"\nKey: {key}");
         Console.Write("Key in hex: ");
-        for (int i = 0; i < inputInBytes.Length; i++)
+        for (int i = 0; i < Key.Length; i++)
         {
             Console.Write(Key[i].ToString("X") + " ");
         }
@@ -223,7 +229,7 @@ public byte[] Encrypt(string text, string key)
             //print state at console
             PrintMatrix(stateArray, "\nInitial State Array");
             
-            AddRoundKey(stateArray, RoundKeys[i]);
+            AddRoundKey(stateArray, RoundKeys[0]);
 
             //print state at console
             PrintMatrix(stateArray, "After AddRoundKey");
@@ -260,7 +266,7 @@ public byte[] Encrypt(string text, string key)
 
             for (int k = 0; k < 4; k++)
                 for (int l = 0; l < 4; l++)
-                    cryptedData[k * 4 + l] = stateArray[l, k];
+                    cryptedData[k * 4 + l + i] = stateArray[l, k];
         }
 
         return cryptedData;
@@ -388,7 +394,7 @@ public byte[] Encrypt(string text, string key)
         Console.WriteLine();
         Console.WriteLine($"\nKey: {key}");
         Console.Write("Key in hex: ");
-        for (int i = 0; i < dataBytes.Length; i++)
+        for (int i = 0; i < Key.Length; i++)
         {
             Console.Write(Key[i].ToString("X") + " ");
         }
@@ -449,7 +455,7 @@ public byte[] Encrypt(string text, string key)
             //add state to byte array
             for (int k = 0; k < 4; k++)
                 for (int l = 0; l < 4; l++)
-                    decryptedData[k * 4 + l] = stateArray[l, k];
+                    decryptedData[k * 4 + l + i] = stateArray[l, k];
         }
 
         return decryptedData;
