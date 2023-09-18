@@ -1,26 +1,56 @@
 ﻿using AES_console;
 using System.Text;
-//using static System.Runtime.Intrinsics.X86.Aes;
-//using static System.Runtime.Intrinsics.X86.Sse2;
 
 var text = "Two One Nine Two Two";
-var key = "Thats my Kung Fu";
+var key = "Thats my Kung Fu"; //LEN = 16
 
-var aes = new AesEncrypt();
+//WithInfoInConsole();
 
-var encryptedText = aes.Encrypt(text, key);
+CleanUp();
 
-Console.WriteLine("\nCiphertext");
-for (int i = 0; i < encryptedText.Length; i++)
-    Console.Write($"{encryptedText[i]:X2} ");
+void CleanUp()
+{
+    var aes = new AES128();
 
+    var encryptedText = aes.Encrypt(text, key);
 
-var decrypted = aes.Decrypt(encryptedText, key);
- 
-Console.WriteLine("\nDecrypted");
-for (int i = 0; i < decrypted.Length; i++)
-    Console.Write($"{decrypted[i]:X2} ");
+    Console.WriteLine($"Text: {text}");
+    Console.WriteLine($"Key: {key}");
 
-Console.WriteLine($"\nDecrypted text: {Encoding.ASCII.GetString(decrypted)}");
+    Console.WriteLine("\nEncrypted bytes");
+    foreach (var t in encryptedText)
+        Console.Write($"{t:X2} ");
 
-Console.ReadLine();
+    var decrypted = aes.Decrypt(encryptedText, key);
+
+    Console.WriteLine("\n\nDecrypted bytes");
+    foreach (var t in decrypted)
+        Console.Write($"{t:X2} ");
+
+    Console.WriteLine($"\nDecrypted text: {Encoding.ASCII.GetString(decrypted)}");
+}
+
+void WithInfoInConsole()
+{
+    var aes = new AES_showcase();
+
+    Console.ForegroundColor = ConsoleColor.Green;
+
+    var encryptedText = aes.Encrypt(text, key);
+
+    Console.WriteLine("\nEncrypted bytes");
+    foreach (var t in encryptedText)
+        Console.Write($"{t:X2} ");
+
+    Console.ForegroundColor = ConsoleColor.Red;
+
+    var decrypted = aes.Decrypt(encryptedText, key);
+
+    Console.WriteLine("\nDecrypted bytes");
+    foreach (var t in decrypted)
+        Console.Write($"{t:X2} ");
+
+    Console.WriteLine($"\nDecrypted text: {Encoding.ASCII.GetString(decrypted)}");
+
+    Console.ReadLine();
+}
