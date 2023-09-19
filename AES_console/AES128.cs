@@ -12,7 +12,7 @@ internal class AES128
     {
         var key = Encoding.UTF8.GetBytes(stringKey);
         if (key.Length != KEY_SIZE)
-            throw new Exception("Key must be 128 bits long");
+            throw new Exception("Key must be 128 bits long"); //16 bytes
 
         int encryptedDataLen;
         if (text.Length % BLOCK_SIZE == 0)  
@@ -51,19 +51,14 @@ internal class AES128
             for (var j = 0; j < ROUNDS - 1; j++)
             {
                 SubBytes(stateArray);
-
                 ShiftRows(stateArray);
-
                 MixColumn(stateArray);
-
                 AddRoundKey(stateArray, roundKeys[j+1]);
             }
 
             // Ultima runda
             SubBytes(stateArray);
-
             ShiftRows(stateArray);
-
             AddRoundKey(stateArray, roundKeys[ROUNDS]);
 
             for (int k = 0; k < 4; k++)
@@ -100,24 +95,19 @@ internal class AES128
             Array.Copy(dataBytes, i, block, 0, endIndex - i);
 
             //transformam in matrice 4x4
-            var stateArray = new byte[4, 4];    
+            var stateArray = new byte[4, 4]; 
+            
             GetStateArray(block, stateArray);
-
             AddRoundKey(stateArray, roundKeys[ROUNDS]);
-
             InvShiftRows(stateArray);
-
             InvSubBytes(stateArray);
 
             // Primele 9 runde
             for (var j = ROUNDS - 1; j > 0; j--)
             {
                 AddRoundKey(stateArray, roundKeys[j]);
-
                 InvMixColumn(stateArray);
-
                 InvShiftRows(stateArray);
-
                 InvSubBytes(stateArray);
             }
     

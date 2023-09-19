@@ -51,6 +51,4 @@ void WithInfoInConsole()
         Console.Write($"{t:X2} ");
 
     Console.WriteLine($"\nDecrypted text: {Encoding.ASCII.GetString(decrypted)}");
-
-    Console.ReadLine();
 }
